@@ -3,7 +3,7 @@ import json
 
 # Hugging Face API Key (Free-tier has limits; for unlimited use, self-host the model)
 API_URL = "https://api-inference.huggingface.co/models/google/gemma-3-27b-it"
-HEADERS = {"Authorization": "Bearer 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"}  # Replace with your Hugging Face API key
+HEADERS = {"Authorization": "Bearer your token"} 
 
 def create_prompt(context, num_cases=5):
     """Generates a structured prompt for test case generation."""
