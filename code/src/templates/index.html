@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Test Case Generator</h2>
+        <form method="POST">
+            <label for="context">Enter Scenario:</label>
+            <textarea id="context" name="context" rows="4" cols="50"></textarea>
+            <label for="num_cases">Number of Cases:</label>
+            <input type="number" id="num_cases" name="num_cases" min="1" value="10">
+            <button type="submit">Generate</button>
+        </form>
+        <div id="output"></div>
+    </div>
+
+    <div id="output"></div>
+    
+    <script>
+        document.querySelector("form").onsubmit = async function(event) {
+            event.preventDefault();
+            let formData = new FormData(event.target);
+            let response = await fetch("/", {
+                method: "POST",
+                body: formData
+            });
+            let result = await response.json();
+            document.getElementById("output").innerText = JSON.stringify(result, null, 2);
+        };
+    </script>
+</body>
+</html>
