@@ -1,3 +1,4 @@
 {
-    "api_url": "your_huggingface_api_key"
+    "api_url": "https://api-inference.huggingface.co/models/google/gemma-3-27b-it",
+    "api_key": "your_huggingface_api_key"
 }
