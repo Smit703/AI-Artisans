@@ -1,22 +1,12 @@
-import os
-from openai import OpenAI
+import requests
 import json
 
-#OpenAI API Key Management
-def get_api_key_from_config():
-    with open("config.json", "r") as file:
-        config = json.load(file)
-    return config.get("openai_api_key")
+# Load API key from config file
+def load_config():
+    """Loads configuration settings from config.json."""
+    with open("config.json", "r") as config_file:
+        return json.load(config_file)
 
-# Initialize OpenAI client
-def get_openai_client():
-    """Returns an OpenAI client using the provided API key."""
-    API_KEY = get_api_key_from_config()
-    if not API_KEY:
-        raise ValueError("OpenAI API key not found. Please set it in config.json.")
-    return OpenAI(api_key=API_KEY)
-
-# Function to generate test case prompt
 def create_prompt(context, num_cases=5):
     """Generates a structured prompt for test case generation."""
     return f"""
@@ -34,25 +24,26 @@ def create_prompt(context, num_cases=5):
     Format the output as a structured JSON list.
     """
 
-# Function to interact with GPT model
 def generate_test_cases(context, num_cases=5):
-    """Calls GPT to generate test cases for a given financial scenario."""
-    client = get_openai_client()
+    """Calls Hugging Face model to generate test cases for a financial scenario."""
     prompt = create_prompt(context, num_cases)
+    payload = {"inputs": prompt}
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an AI test case generator."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    CONFIG = load_config()
+    API_URL = CONFIG["api_url"]
+    HEADERS = {"Authorization": f"Bearer {CONFIG['api_key']}"}
+    response = requests.post(API_URL, headers=HEADERS, json=payload)
 
-    return json.loads(response.choices[0].message.content)
+    if response.status_code == 200:
+        generated_text = response.json()[0].get("generated_text", "")
+        return generated_text
+    else:
+        print("Error:", response.text)
+        return None
+    
 
 # Main Execution
-
 if __name__ == "__main__":
     context = "Detect fraudulent credit card transactions based on unusual spending patterns."
     test_cases = generate_test_cases(context)
-    print(json.dumps(test_cases, indent=4))
+    print(test_cases)
