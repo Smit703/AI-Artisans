@@ -62,16 +62,49 @@
             font-weight: bold;
             color: #28a745;
         }
+        #fileUploadSection {
+            display: none;
+            margin-top: 10px;
+        }
+        .fileUpload-container{
+           display: flex;
+           align-items: center;
+           white-space: nowrap; 
+           gap: 10px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .checkbox-container label {
+            margin-right: 5px;
+            margin-top: 0;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Test Case Generator</h2>
         <form id="testCaseForm">
-            <label for="context">Enter Scenario:</label>
+            <label for="context">Enter Context:</label>
             <textarea id="context" name="context" rows="4"></textarea>
             <label for="num_cases">Number of Cases:</label>
             <input type="number" id="num_cases" name="num_cases" min="1" value="10">
+            
+            <div class="checkbox-container">
+                <label for="uploadCheck">Check this box to test an available codebase</label>
+                <input type="checkbox" id="uploadCheck" name="uploadCheck">
+            </div>
+            
+            <div id="fileUploadSection">
+                <div class="fileUpload-container">
+                    <label for="fileUpload">Upload File:</label>
+                    <input type="file" id="fileUpload" name="fileUpload">
+                </div>
+            </div>
+            
             <button type="submit">Generate</button>
         </form>
         <button id="downloadBtn" onclick="downloadFile()">Download Test Cases</button>
@@ -79,9 +112,20 @@
     </div>
 
     <script>
+        document.getElementById("uploadCheck").addEventListener("change", function() {
+            let fileUploadSection = document.getElementById("fileUploadSection");
+            fileUploadSection.style.display = this.checked ? "block" : "none";
+        });
+
         document.getElementById("testCaseForm").onsubmit = async function(event) {
             event.preventDefault();
             let formData = new FormData(event.target);
+            let fileInput = document.getElementById("fileUpload");
+
+            if (fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+            }
+
             let response = await fetch("/", {
                 method: "POST",
                 body: formData
@@ -98,8 +142,26 @@
         };
 
         function downloadFile() {
+        let isChecked = document.getElementById("uploadCheck").checked;
+        
+        if (isChecked) {
+            fetch("/multi_download")
+            .then(response => response.json())
+            .then(data => {
+                data.files.forEach(file => {
+                    const link = document.createElement("a");
+                    link.href = `/fetch_file?path=${encodeURIComponent(file)}`;
+                    link.download = file.split('/').pop(); // Extract filename
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            })
+            .catch(error => console.error("Download failed", error));
+        } else {
             window.location.href = "/download";
         }
+    }
     </script>
 </body>
 </html>
