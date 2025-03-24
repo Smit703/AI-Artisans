@@ -72,9 +72,3 @@ def index():
     
 if __name__ == "__main__":
     app.run(debug=False)
-
-# Main Execution
-# if __name__ == "__main__":
-#     context = "Detect fraudulent credit card transactions based on unusual spending patterns."
-#     test_cases = generate_test_cases(context)
-#     print(test_cases)
