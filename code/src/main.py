@@ -8,8 +8,8 @@ import os
 import pandas as pd
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-Test_case_file = os.path.join(script_dir, "Generated/test_cases.txt")
 excel_file_path = os.path.join(script_dir, "Generated/test_cases.xlsx")
+hasCode = False
 
 app = Flask(__name__)
 
@@ -65,31 +65,20 @@ def generate_test_cases(context, num_cases=5):
         print("Error:", str(e))
         return jsonify({"error": str(e)})
 
-def save_to_txt(test_cases):
-    # Ensure the test cases are saved in a readable table format
-    with open(Test_case_file, "w") as file:
-        file.write("Test Cases in Table Format:\n")
-        file.write(test_cases)
-
 def save_to_excel(test_cases, context):
-    # Parse the test cases into a DataFrame and save them as an Excel file
     rows = []
     lines = test_cases.split("\n")
-    headers = ["Test Case ID", "Test Scenario", "Test Data", "Validation Steps", "Expected Results"]
+    headers = ["Test Case ID", "BDD Format test case", "Test Data", "Validation Steps", "Expected Results"]
     
-    # Skip the header row and parse the table rows
     for line in lines[4:]:
-        if line.strip():  # Skip empty lines
-            columns = [cell.strip() for cell in line.split("|")[1:-1]]  # Remove leading/trailing pipes
+        if line.strip(): 
+            columns = [cell.strip() for cell in line.split("|")[1:-1]] 
            
-            # Bolden Given, When, Then in Test Scenario
             columns[1] = columns[1].replace("Given", "**Given**").replace("When", "**When**").replace("Then", "**Then**")
            
-            # Add numbering to Test Data, Validation Steps, and Expected Output
-            for i in range(2, 5):  # Columns 2, 3, and 4
-                if "<br>" in columns[i]:  # Only process if there are multiple lines
+            for i in range(2, 5): 
+                if "<br>" in columns[i]: 
                     lines_in_column = columns[i].split("<br>")
-                    # Check if the line is already numbered to avoid duplication
                     numbered_lines = [
                         f"{idx + 1}. {line.strip()}" if not line.strip().startswith(f"{idx + 1}.") else line.strip()
                         for idx, line in enumerate(lines_in_column) if line.strip()
@@ -98,27 +87,22 @@ def save_to_excel(test_cases, context):
 
             rows.append(columns)
 
-    # Create a DataFrame and save it as an Excel file
     df = pd.DataFrame(rows, columns=headers)
     df.to_excel(excel_file_path, index=False, engine='openpyxl')
     
-    # Open the Excel file and apply text wrapping to all cells
     workbook = load_workbook(excel_file_path)
     sheet = workbook.active
 
-    # Apply light blue fill to the header row
     header_fill = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")
-    for cell in sheet[1]:  # First row is the header
+    for cell in sheet[1]:  
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    # Define the table range
-    table_range = f"A1:E{len(rows) + 2}"  # Adjust range based on the number of rows
+    table_range = f"A1:E{len(rows) + 2}" 
     table = Table(displayName="TestCasesTable", ref=table_range)
 
-    # Apply a table style
     style = TableStyleInfo(
-        name="TableStyleMedium9",  # Predefined style with light blue headers
+        name="TableStyleMedium9", 
         showFirstColumn=False,
         showLastColumn=False,
         showRowStripes=False,
@@ -127,12 +111,10 @@ def save_to_excel(test_cases, context):
     table.tableStyleInfo = style
     sheet.add_table(table)
 
-    # Apply text wrapping to all cells
     for row in sheet.iter_rows():
         for cell in row:
             cell.alignment = Alignment(wrap_text=True)
 
-    # Save the updated Excel file
     workbook.save(excel_file_path)
     print(f"Test cases saved to {excel_file_path}")        
 
@@ -141,6 +123,16 @@ def index():
     if request.method == "POST":
         context = request.form.get("context")
         num_cases = int(request.form.get("num_cases", 10))
+
+        file_content = ""
+        if "file" in request.files:
+            uploaded_file = request.files["file"]
+            if uploaded_file.filename != "":
+                file_content = uploaded_file.read().decode("utf-8")
+                hasCode = True
+            else:
+                hasCode = False
+
         return generate_test_cases(context, num_cases)
     return render_template("index.html")
 
