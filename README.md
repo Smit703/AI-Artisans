@@ -5,7 +5,8 @@ Setup:
 2) python3 -m pip install flask
 3) python3 -m pip install google-generativeai
 4) python3 -m pip install json
-5) Add your Google gemini API key in config.json
+5) python3 -m pip install pandas
+6) Add your Google gemini API key in config.json
 The key can be generated here - https://aistudio.google.com/apikey
 
 To run: 
