@@ -1,5 +1,3 @@
 {
-    "api_url": "https://api-inference.huggingface.co/models/google/gemma-3-27b-it",
-    "api_url_try": "https://api-inference.huggingface.co/models/google/gemma-3-4b-it",
-    "api_key": "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"
+    "gemini_api_key": "your-gemini-api-key"
 }

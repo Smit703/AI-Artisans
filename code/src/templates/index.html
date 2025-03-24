@@ -14,13 +14,14 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            flex-direction: column;
         }
         .container {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
+            width: 500px;
         }
         h2 {
             text-align: center;
@@ -51,23 +52,30 @@
         button:hover {
             background: #0056b3;
         }
-        #output {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            max-height: 200px;
-            overflow-y: auto;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Test Case Generator</h2>
-        <form method="POST">
+        <form id="testCaseForm">
             <label for="context">Enter Scenario:</label>
-            <textarea id="context" name="context" rows="4" cols="50"></textarea>
+            <textarea id="context" name="context" rows="4"></textarea>
             <label for="num_cases">Number of Cases:</label>
             <input type="number" id="num_cases" name="num_cases" min="1" value="10">
             <button type="submit">Generate</button>
@@ -75,10 +83,8 @@
         <div id="output"></div>
     </div>
 
-    <div id="output"></div>
-    
     <script>
-        document.querySelector("form").onsubmit = async function(event) {
+        document.getElementById("testCaseForm").onsubmit = async function(event) {
             event.preventDefault();
             let formData = new FormData(event.target);
             let response = await fetch("/", {
@@ -86,8 +92,38 @@
                 body: formData
             });
             let result = await response.json();
-            document.getElementById("output").innerText = JSON.stringify(result, null, 2);
+            displayTable(result);
         };
+
+        function displayTable(data) {
+            let outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "";
+            if (!Array.isArray(data)) {
+                outputDiv.innerText = "Invalid response format";
+                return;
+            }
+            let table = document.createElement("table");
+            let headerRow = document.createElement("tr");
+            let headers = ["Test Case ID", "Description", "Input Data", "Expected Output", "Validation Steps", "Expected Outcome"];
+            
+            headers.forEach(header => {
+                let th = document.createElement("th");
+                th.innerText = header;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+            
+            data.forEach(testCase => {
+                let row = document.createElement("tr");
+                headers.forEach(key => {
+                    let td = document.createElement("td");
+                    td.innerText = testCase[key.toLowerCase().replace(/ /g, "_")];
+                    row.appendChild(td);
+                });
+                table.appendChild(row);
+            });
+            outputDiv.appendChild(table);
+        }
     </script>
 </body>
 </html>

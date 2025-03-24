@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, jsonify
-import requests
 import json
+import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -23,7 +23,8 @@ def generate_tests_prompt(context, num_cases=10):
     
     Scenario: {context}
 
-    Based on the context follow the instructions {instructions} to generate the test cases.
+    Based on the context, follow these instructions:
+    {instructions}
     
     Each test case should include:
     - Test Case ID
@@ -33,38 +34,38 @@ def generate_tests_prompt(context, num_cases=10):
     - Validation steps
     - Expected Outcome
 
-    Validate the test cases for accuracy, completeness and relevance.
+    Validate the test cases for accuracy, completeness, and relevance.
 
-    Analyse and add:
+    Analyze and add:
     - Missing test scenarios and edge cases
     
     Format the output as a structured JSON list.
     """
 
 def generate_test_cases(context, num_cases=5):
-    """Calls Hugging Face model to generate test cases for a financial scenario."""
+    """Calls Gemini API to generate test cases for a financial scenario."""
     prompt = generate_tests_prompt(context, num_cases)
-    payload = {"inputs": prompt}
 
     CONFIG = load_config()
-    API_URL = CONFIG["api_url"]
-    HEADERS = {"Authorization": f"Bearer {CONFIG['api_key']}"}
-    generated_tests = requests.post(API_URL, headers=HEADERS, json=payload)
+    API_KEY = CONFIG["gemini_api_key"]
 
-    if generated_tests.status_code == 200:
-        tests = generated_tests.json()[0].get("generated_text", "")
-        print(tests)
-        return tests
-    else:
-        error = generated_tests.text
-        print("Error:", error)
-        return error
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel("gemini-2.0-flash")
+
+    try:
+        response = model.generate_content(prompt)
+        test_cases = response.text 
+        print(test_cases)
+        return test_cases
+    except Exception as e:
+        print("Error:", str(e))
+        return str(e)
     
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         context = request.form.get("context")
-        num_cases = int(request.form.get("num_cases", 5))
+        num_cases = int(request.form.get("num_cases", 10))
         test_cases = generate_test_cases(context, num_cases)
         return jsonify(test_cases)
     return render_template("index.html")

@@ -1,4 +1,4 @@
-Match the given context to any of the financial systems as given below and make sure that the generated test cases cover a variety of cases as given.
+Match the given context to any of the financial systems if possible and make sure that the generated test cases cover a variety of cases as given.
 
 1) Fraud detection and Risk Scoring:
 - Test that the fraud detection system marks a transaction as high risk due to unsual purchase of a product
