@@ -1,18 +1,23 @@
 from flask import Flask, request, render_template, jsonify
 import json
 import google.generativeai as genai
+import os
 
 app = Flask(__name__)
 
 # Load API key from config file
 def load_config():
     """Loads configuration settings from config.json."""
-    with open("config.json", "r") as config_file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "config.json")
+    with open(file_path, "r") as config_file:
         return json.load(config_file)
     
 def load_instructions():
     """Loads additional instructions from instructions.md."""
-    with open("instructions.md", "r") as instructions_file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "instructions.md")
+    with open(file_path, "r") as instructions_file:
         return instructions_file.read()
 
 def generate_tests_prompt(context, num_cases=10):
