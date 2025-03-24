@@ -22,15 +22,16 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 500px;
+            text-align: center;
         }
         h2 {
-            text-align: center;
             color: #333;
         }
         label {
             font-weight: bold;
             margin-top: 10px;
             display: block;
+            text-align: left;
         }
         textarea, input {
             width: 100%;
@@ -52,21 +53,14 @@
         button:hover {
             background: #0056b3;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        #downloadBtn {
+            display: none;
+            background: #28a745;
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #28a745;
         }
     </style>
 </head>
@@ -80,7 +74,8 @@
             <input type="number" id="num_cases" name="num_cases" min="1" value="10">
             <button type="submit">Generate</button>
         </form>
-        <div id="output"></div>
+        <button id="downloadBtn" onclick="downloadFile()">Download Test Cases</button>
+        <div id="message"></div>
     </div>
 
     <script>
@@ -92,37 +87,18 @@
                 body: formData
             });
             let result = await response.json();
-            displayTable(result);
+            
+            let messageDiv = document.getElementById("message");
+            messageDiv.innerText = result.message || "Error generating test cases.";
+
+            let downloadBtn = document.getElementById("downloadBtn");
+            if (result.message) {
+                downloadBtn.style.display = "block";
+            }
         };
 
-        function displayTable(data) {
-            let outputDiv = document.getElementById("output");
-            outputDiv.innerHTML = "";
-            if (!Array.isArray(data)) {
-                outputDiv.innerText = "Invalid response format";
-                return;
-            }
-            let table = document.createElement("table");
-            let headerRow = document.createElement("tr");
-            let headers = ["Test Case ID", "Description", "Input Data", "Expected Output", "Validation Steps", "Expected Outcome"];
-            
-            headers.forEach(header => {
-                let th = document.createElement("th");
-                th.innerText = header;
-                headerRow.appendChild(th);
-            });
-            table.appendChild(headerRow);
-            
-            data.forEach(testCase => {
-                let row = document.createElement("tr");
-                headers.forEach(key => {
-                    let td = document.createElement("td");
-                    td.innerText = testCase[key.toLowerCase().replace(/ /g, "_")];
-                    row.appendChild(td);
-                });
-                table.appendChild(row);
-            });
-            outputDiv.appendChild(table);
+        function downloadFile() {
+            window.location.href = "/download";
         }
     </script>
 </body>
