@@ -21,3 +21,17 @@ Match the given context to any of the financial systems if possible and make sur
 - Verify the system flags frequency of cross border transactions to specific risk countries
 - Test the system detect change in behavior on customer's profile with recent transaction trends
 - Tests the system initiates periodic CDD / EDD reviews as needed
+
+4) Payment Service Testing:
+- Test that the message formats of FED parses correctly
+- Validate the cross border transaction involving currency conversion and intermediary banks
+- Verify the transactions do not bypass the screen of sanction list
+- Test if the system detect duplicate transactions
+- Validate the system errors during network failures
+- Verify the transactions if one bank failes to settle during intemediary transfer causing liquidity issues
+
+5) Customer Service Chatbot & NLP based Testing:
+- Ensure appropriate responses for customer queries
+- Validate handling of follow up questions without breaking context
+- Verify chatbot responses accurately when user make typos or uses poor grammar
+- Validate how chatbot responses to internet slangs (e.g., 'brb' for 'be right back')
