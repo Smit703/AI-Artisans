@@ -30,6 +30,12 @@
             font-size: 20px;
             text-align: center;
         }
+        h4 {
+            color: #585757;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+        }
         label {
             font-weight: bold;
             margin-top: 10px;
@@ -99,6 +105,7 @@
         <h1>WELLSFARGO - 2025 TECHNOLOGY HACKATHON</h1>
         <h2>Welcome to AI-Artisans</h2>
         <h3>Context-based AI Testing System</h3>
+        <h4>Targeted Use Cases: Payment Services Testing, Fraud Detection & Risk Scoring, Loan & Credit Risk Assessment, Customer Service Chatbots & NLP-based Testing, Regulatory Compliance & Audit Validation</h4>
         <form id="testCaseForm" class="formdata">
             <label for="context">Enter Context:</label>
             <textarea id="context" name="context" rows="4" placeholder="Enter your code context here"></textarea>
@@ -119,7 +126,7 @@
             
             <button type="submit">Generate</button>
         </form>
-        <button id="downloadBtn" onclick="downloadFile()">Download Test Data</button>
+        <button id="downloadBtn" onclick="downloadFile()">Download Test Scenario and Test Data</button>
         <div id="message"></div>
     </div>
 
@@ -135,10 +142,10 @@
 
             if (this.checked) {
                 fileUploadSection.style.display = "block";
-                downloadBtn.innerText = "Download Test Data, Test Script, and Test Results";
+                downloadBtn.innerText = "Download Test Scenario, Test Data, Test Script, and Test Results";
             } else {
                 fileUploadSection.style.display = "none";
-                downloadBtn.innerText = "Download Test Data";
+                downloadBtn.innerText = "Download Test Scenario and Test Data";
             }
         });
 
