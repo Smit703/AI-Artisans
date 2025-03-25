@@ -140,9 +140,9 @@ def save_to_excel(test_cases, context, executed=False):
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     if executed:
-        table_range = f"A1:F{len(rows) + 2}"
+        table_range = f"A1:F{len(rows) + 1}"
     else:
-        table_range = f"A1:E{len(rows) + 2}" 
+        table_range = f"A1:E{len(rows) + 1}" 
     table = Table(displayName="TestCasesTable", ref=table_range)
 
     style = TableStyleInfo(
