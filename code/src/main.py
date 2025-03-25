@@ -45,7 +45,7 @@ def generate_tests_prompt(context, num_cases=10):
     
     Each test case should include:
     - Test Case ID
-    - Test scenario (gherkin format)
+    - Test scenario (gherkin format, do not use '<br>')
     - Test data (use '<br>' for line breaks)
     - Validation steps (use '<br>' for line breaks)
     - Expected Results (use '<br>' for line breaks)
@@ -56,30 +56,69 @@ def generate_tests_prompt(context, num_cases=10):
     | Test Case ID | Test Scenario | Test Data | Validation Steps | Expected Results
     """
 
-def generate_test_cases(context, num_cases=5):
-    prompt = generate_tests_prompt(context, num_cases)
+def generate_tests_prompt_with_code(context, num_cases, upload_file_path):
+    instructions = load_instructions()
+    with open(upload_file_path, "r") as f:
+        python_code = f.read()
+    return f"""
+    You are an expert in financial transactions and risk assessment. Generate {num_cases} test cases for the following code which is based on the scenario:
+    
+    Scenario: {context}
+
+    Code: {python_code}
+    
+    Based on the context, follow these instructions:
+    {instructions}
+
+    Make sure to add the edge cases
+    
+    Each test case should include:
+    - Test Case ID
+    - Test scenario (gherkin format, do not use '<br>')
+    - Test data (use '<br>' for line breaks)
+    - Validation steps (use '<br>' for line breaks)
+    - Expected Results (use '<br>' for line breaks)
+    
+    Validate the test cases for accuracy, completeness, and relevance.
+    
+    Format the output as a table with the following columns:
+    | Test Case ID | Test Scenario | Test Data | Validation Steps | Expected Results
+
+    Do not add any additional text to the response
+    """
+
+def generate_test_cases(context, num_cases=10, upload_file_path=None, code_uploaded=False):
+    if code_uploaded:
+        prompt = generate_tests_prompt_with_code(context, num_cases, upload_file_path)
+    else:
+        prompt = generate_tests_prompt(context, num_cases)
+
     global test_cases
     
     try:
         response = model.generate_content(prompt)
         test_cases = response.text.strip()
-        save_to_excel(test_cases, context)
+        if (code_uploaded==False):
+            save_to_excel(test_cases, context)
         return jsonify({"message": "Test cases generated successfully."})
     except Exception as e:
         print("Error:", str(e))
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)})  
 
-def save_to_excel(test_cases, context):
+def save_to_excel(test_cases, context, executed=False):
     rows = []
+    test_cases = test_cases.replace("**", "")
     lines = test_cases.split("\n")
-    headers = ["Test Case ID", "BDD Format test case", "Test Data", "Validation Steps", "Expected Results"]
+    if executed:
+        headers = ["Test Case ID", "Test Scenario", "Test Data", "Validation Steps", "Expected Results", "Test Case Results"]
+    else:
+        headers = ["Test Case ID", "BDD Format test case", "Test Data", "Validation Steps", "Expected Results"]
     
-    for line in lines[4:]:
+    for line in lines[3:]:
         if line.strip(): 
             columns = [cell.strip() for cell in line.split("|")[1:-1]]
             if(len(columns) > 1):
-                columns[1] = columns[1].replace("Given", "**Given**").replace("When", "**When**").replace("Then", "**Then**")
-                for i in range(2, 5): 
+                for i in range(0, 5): 
                     if "<br>" in columns[i]: 
                         lines_in_column = columns[i].split("<br>")
                         numbered_lines = [
@@ -100,7 +139,10 @@ def save_to_excel(test_cases, context):
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    table_range = f"A1:E{len(rows) + 2}" 
+    if executed:
+        table_range = f"A1:F{len(rows) + 2}"
+    else:
+        table_range = f"A1:E{len(rows) + 2}" 
     table = Table(displayName="TestCasesTable", ref=table_range)
 
     style = TableStyleInfo(
@@ -121,7 +163,13 @@ def save_to_excel(test_cases, context):
     print(f"Test cases saved to {excel_file_path}")  
 
 def generate_pytest_tests(python_code, filename):
-    prompt = f"Generate pytest test cases for the following Python code:\n\n{python_code}\n Use {filename} as my module\n Please give only the python code and no other text"
+    prompt = f"""Generate pytest test cases for the following Python code:\n\n{python_code}\n
+      
+      Use the {test_cases} as cases for the corresponding pytest. Use the Test Case ID as the test method name\n
+      
+      Use {filename} as my module\n 
+      
+      Please give only the python code and no other text"""
     response = model.generate_content(prompt)
     return response.text if response else "Failed to generate test cases."
 
@@ -142,6 +190,27 @@ def automate_python_testing(py_file, filename):
         subprocess.run(["coverage", "report"], stdout=result_file, stderr=result_file)
         subprocess.run(["coverage", "html"], stdout=result_file, stderr=result_file)
         result_file.write("\n\n✅ Test execution and coverage report completed!\n")
+    
+    return jsonify({"message": "Test cases generated and executed successfully."})
+
+def save_test_results(context):
+    global test_cases
+    with open(result_file_path, "r") as result_file:
+        results = result_file.read()  
+    prompt = f""" In the {test_cases} add an additional column | Actual Results.
+    
+    The Actual result should contain Pass or Fail depending on the failures mentioned in {results}
+
+    Modify the {test_cases} to output as following :
+    | Test Case ID | Test Scenario | Test Data | Validation Steps | Expected Results | Actual Results
+
+    Do not add any additional text to the response
+    """
+    response = model.generate_content(prompt)
+    test_cases = response.text.strip()
+    save_to_excel(test_cases, context, True)
+    return jsonify({"message": "Test cases generated and executed successfully."})
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -153,9 +222,11 @@ def index():
         if uploaded_file and uploaded_file.filename:
             file_path = os.path.join(upload_file_path, uploaded_file.filename)
             uploaded_file.save(file_path)
+            generate_test_cases(context, num_cases, file_path, True)
             automate_python_testing(file_path, uploaded_file.filename)
-
-        return generate_test_cases(context, num_cases)
+            return save_test_results(context)
+        else:
+            return generate_test_cases(context, num_cases)
     return render_template("index.html")
 
 @app.route("/download")
