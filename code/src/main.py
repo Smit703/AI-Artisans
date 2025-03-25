@@ -203,7 +203,8 @@ def automate_python_testing(py_file, filename):
         with open(result_file_path, "w") as result_file:
             result_file.write("\n\n📊 Running tests with coverage analysis...\n")
             subprocess.run(["pytest", test_file], stdout=result_file, stderr=result_file)
-            subprocess.run(["coverage", "run", "--source=TestFiles/.", "-m", "pytest", test_file], stdout=result_file, stderr=result_file)
+            coverage_path = os.path.join(script_dir, "TestFiles/.")
+            subprocess.run(["coverage", "run", str(f"--source={coverage_path}"), "-m", "pytest", test_file], stdout=result_file, stderr=result_file)
             subprocess.run(["coverage", "report"], stdout=result_file, stderr=result_file)
             subprocess.run(["coverage", "html"], stdout=result_file, stderr=result_file)
             result_file.write("\n\n✅ Test execution and coverage report completed!\n")
