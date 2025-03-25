@@ -17,7 +17,7 @@
             flex-direction: column;
         }
         .container {
-            width: 600px;
+            width: 1000px;
             margin: 50px auto;
             background: #fff;
             padding: 20px;
@@ -119,7 +119,7 @@
             
             <button type="submit">Generate</button>
         </form>
-        <button id="downloadBtn" onclick="downloadFile()">Download Test Cases</button>
+        <button id="downloadBtn" onclick="downloadFile()">Download Test Data</button>
         <div id="message"></div>
     </div>
 
@@ -127,6 +127,19 @@
         document.getElementById("uploadCheck").addEventListener("change", function() {
             let fileUploadSection = document.getElementById("fileUploadSection");
             fileUploadSection.style.display = this.checked ? "block" : "none";
+        });
+
+        document.getElementById("uploadCheck").addEventListener("change", function() {
+            let fileUploadSection = document.getElementById("fileUploadSection");
+            let downloadBtn = document.getElementById("downloadBtn");
+
+            if (this.checked) {
+                fileUploadSection.style.display = "block";
+                downloadBtn.innerText = "Download Test Data, Test Script, and Test Results";
+            } else {
+                fileUploadSection.style.display = "none";
+                downloadBtn.innerText = "Download Test Data";
+            }
         });
 
         document.getElementById("testCaseForm").onsubmit = async function(event) {
