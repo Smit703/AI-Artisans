@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, send_file, jsonify
 from openpyxl import load_workbook
-from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles import Alignment, PatternFill, Font, Border, Side
 from openpyxl.worksheet.table import Table, TableStyleInfo
 import json
 import google.generativeai as genai
@@ -35,7 +35,7 @@ def generate_tests_prompt(context, num_cases=10):
     
     Each test case should include:
     - Test Case ID
-    - Test scenario (gherkin format)
+    - Test scenario (gherkin format, dont use '<br>' for line breaks)
     - Test data (use '<br>' for line breaks)
     - Validation steps (use '<br>' for line breaks)
     - Expected Results (use '<br>' for line breaks)
@@ -79,7 +79,7 @@ def save_to_excel(test_cases, context):
     
     # Skip the header row and parse the table rows
     for line in lines[4:]:
-        if line.strip():  # Skip empty lines
+        if line.strip() and line.count("|") >= len(headers) + 1:  # Ensure the line has enough columns
             columns = [cell.strip() for cell in line.split("|")[1:-1]]  # Remove leading/trailing pipes
            
             # Bolden Given, When, Then in Test Scenario
@@ -106,14 +106,25 @@ def save_to_excel(test_cases, context):
     workbook = load_workbook(excel_file_path)
     sheet = workbook.active
 
-    # Apply light blue fill to the header row
-    header_fill = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")
-    for cell in sheet[1]:  # First row is the header
-        cell.fill = header_fill
+    # Add a heading at the top
+    heading = f"Context based Test Scenarios for the given requirement <{context}>"
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+    heading_cell = sheet.cell(row=1, column=1)
+    heading_cell.value = heading
+    heading_cell.fill = PatternFill(start_color="FFD700", end_color="FFD700", fill_type="solid")  # Gold fill
+    heading_cell.font = Font(size=14, bold=True)
+    heading_cell.alignment = Alignment(horizontal="center", vertical="center")
+    
+   # Write headers explicitly in the 2nd row
+    for col_num, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=2, column=col_num)
+        cell.value = header
+        cell.fill = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")  # Light blue fill
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.font = Font(bold=True)
 
-    # Define the table range
-    table_range = f"A1:E{len(rows) + 2}"  # Adjust range based on the number of rows
+    # Define the table range to include all rows and columns with data
+    table_range = f"A1:{chr(64 + len(headers))}{len(rows) + 1}"  # Adjust range based on the number of rows and columns
     table = Table(displayName="TestCasesTable", ref=table_range)
 
     # Apply a table style
@@ -132,17 +143,32 @@ def save_to_excel(test_cases, context):
         for cell in row:
             cell.alignment = Alignment(wrap_text=True)
 
+   # Apply black borders to all cells in the table
+    thin_border = Border(
+        left=Side(style="thin", color="000000"),
+        right=Side(style="thin", color="000000"),
+        top=Side(style="thin", color="000000"),
+        bottom=Side(style="thin", color="000000"),
+    )
+    for row in sheet.iter_rows(min_row=1, max_row=len(rows) + 2, max_col=len(headers)):
+        for cell in row:
+            cell.border = thin_border
+
     # Save the updated Excel file
     workbook.save(excel_file_path)
     print(f"Test cases saved to {excel_file_path}")        
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    message = None # Retrieve and clear the message 
     if request.method == "POST":
         context = request.form.get("context")
         num_cases = int(request.form.get("num_cases", 10))
-        return generate_test_cases(context, num_cases)
-    return render_template("index.html")
+        try:
+            generate_test_cases(context, num_cases)  # Store the message in the session
+        except Exception as e:
+            message = f"Error: {str(e)}"  # Store the error message in the session
+    return render_template("index.html", message=message)
 
 @app.route("/download")
 def download_file():
