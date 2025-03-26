@@ -1,0 +1,80 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-8.3.5, pluggy-1.5.0
+rootdir: C:\Users\dell\OneDrive\Desktop\Aariaara\AI-Artisans\AI-Artisans\code\src
+collected 10 items
+
+TestFiles\Test_Script.py ..F..FFF..                                      [100%]
+
+================================== FAILURES ===================================
+______________________________ test_TC_Loan_003 _______________________________
+
+    def test_TC_Loan_003():
+        loan = LoanApproval(income=30000, credit_score=700, debt=1500, employment_status="Full-time", loan_amount=20000, loan_term=5)
+>       assert loan.is_eligible() == "Rejected: High Debt-to-Income Ratio"
+E       AssertionError: assert 'Approved' == 'Rejected: Hi...-Income Ratio'
+E         
+E         - Rejected: High Debt-to-Income Ratio
+E         + Approved
+
+TestFiles\Test_Script.py:14: AssertionError
+______________________________ test_TC_Loan_006 _______________________________
+
+    def test_TC_Loan_006():
+        loan = LoanApproval(income=40000, credit_score=700, debt=500, employment_status="Full-time", loan_amount=30000, loan_term=5)
+>       assert loan.is_eligible() == "Rejected: Loan Payment Exceeds Affordable Amount"
+E       AssertionError: assert 'Approved' == 'Rejected: Lo...rdable Amount'
+E         
+E         - Rejected: Loan Payment Exceeds Affordable Amount
+E         + Approved
+
+TestFiles\Test_Script.py:26: AssertionError
+______________________________ test_TC_Loan_007 _______________________________
+
+    def test_TC_Loan_007():
+        loan = LoanApproval(income=0, credit_score=700, debt=0, employment_status="Full-time", loan_amount=20000, loan_term=5)
+>       assert loan.is_eligible() == "Rejected: Low Income"
+
+TestFiles\Test_Script.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+TestFiles\LoanApproval.py:23: in is_eligible
+    dti_ratio = self.debt_to_income_ratio()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <LoanApproval.LoanApproval object at 0x000001D527651F20>
+
+    def debt_to_income_ratio(self):
+        """Calculates the debt-to-income ratio."""
+>       return self.debt / self.income
+E       ZeroDivisionError: division by zero
+
+TestFiles\LoanApproval.py:12: ZeroDivisionError
+______________________________ test_TC_Loan_008 _______________________________
+
+    def test_TC_Loan_008():
+        loan = LoanApproval(income=25000, credit_score=750, debt=2000, employment_status="Full-time", loan_amount=10000, loan_term=3)
+>       assert loan.is_eligible() == "Rejected: High Debt-to-Income Ratio"
+E       AssertionError: assert 'Approved' == 'Rejected: Hi...-Income Ratio'
+E         
+E         - Rejected: High Debt-to-Income Ratio
+E         + Approved
+
+TestFiles\Test_Script.py:34: AssertionError
+=========================== short test summary info ===========================
+FAILED TestFiles/Test_Script.py::test_TC_Loan_003 - AssertionError: assert 'A...
+FAILED TestFiles/Test_Script.py::test_TC_Loan_006 - AssertionError: assert 'A...
+FAILED TestFiles/Test_Script.py::test_TC_Loan_007 - ZeroDivisionError: divisi...
+FAILED TestFiles/Test_Script.py::test_TC_Loan_008 - AssertionError: assert 'A...
+========================= 4 failed, 6 passed in 0.08s =========================
+Name                        Stmts   Miss  Cover
+-----------------------------------------------
+TestFiles\LoanApproval.py      40     11    72%
+TestFiles\Test_Script.py       32      0   100%
+-----------------------------------------------
+TOTAL                          72     11    85%
+Wrote HTML report to htmlcov\index.html
+
+
+ Running tests with coverage analysis...
+
+
+ Test execution and coverage report completed!
